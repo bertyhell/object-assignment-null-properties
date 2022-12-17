@@ -1,4 +1,4 @@
-# Proposal for object assignment for falsy/null/undefined properties in object literals
+# Proposal for object property nullish coalescing operator
 
 This proposal shows a new syntax for assigning properties to an object literal but only if the object is not falsy/null or undefined.
 

@@ -2,6 +2,15 @@
 
 This proposal shows a new syntax for assigning properties to an object literal but only if the object is not falsy/null or undefined.
 
+Short example:
+```javascript
+const myPersonObj = {
+	firstName: person.name,
+	work?: person.occupation,      // Only set work if person.occupation is truthy, by using the "?:" operator
+	street??: person.address[0]    // Only set street is person.address[0] is not null and not undefined, by using the "??:" operator
+};
+```
+
 ## Status
 
 Champion: Bert Verhelst, Stage: -1

@@ -1,61 +1,184 @@
-# template-for-proposals
+# Proposal for object assignment for falsy/null/undefined properties in object literals
 
-A repository template for ECMAScript proposals.
+This proposal shows a new syntax for assigning properties to an object literal but only if the object is not falsy/null or undefined.
 
-## Before creating a proposal
+## Status
 
-Please ensure the following:
-  1. You have read the [process document](https://tc39.github.io/process-document/)
-  1. You have reviewed the [existing proposals](https://github.com/tc39/proposals/)
-  1. You are aware that your proposal requires being a member of TC39, or locating a TC39 delegate to "champion" your proposal
+Champion: Bert Verhelst, Stage: -1
 
-## Create your proposal repo
+## Motivation
 
-Follow these steps:
-  1. Click the green ["use this template"](https://github.com/tc39/template-for-proposals/generate) button in the repo header. (Note: Do not fork this repo in GitHub's web interface, as that will later prevent transfer into the TC39 organization)
-  1. Update the biblio to the latest version: `npm install --save-dev --save-exact @tc39/ecma262-biblio@latest`.
-  1. Go to your repo settings “Options” page, under “GitHub Pages”, and set the source to the **main branch** under the root (and click Save, if it does not autosave this setting)
-      1. check "Enforce HTTPS"
-      1. On "Options", under "Features", Ensure "Issues" is checked, and disable "Wiki", and "Projects" (unless you intend to use Projects)
-      1. Under "Merge button", check "automatically delete head branches"
-<!--
-  1. Avoid merge conflicts with build process output files by running:
-      ```sh
-      git config --local --add merge.output.driver true
-      git config --local --add merge.output.driver true
-      ```
-  1. Add a post-rewrite git hook to auto-rebuild the output on every commit:
-      ```sh
-      cp hooks/post-rewrite .git/hooks/post-rewrite
-      chmod +x .git/hooks/post-rewrite
-      ```
--->
-  3. ["How to write a good explainer"][explainer] explains how to make a good first impression.
+This code paradigm often returns in javascript code where you want to assign a property to an object if the value is defined (truthy). If it is not, then the property should not be put on the object.
 
-      > Each TC39 proposal should have a `README.md` file which explains the purpose
-      > of the proposal and its shape at a high level.
-      >
-      > ...
-      >
-      > The rest of this page can be used as a template ...
+Example of the current way of writing this:
+```javascript
+const person = {
+  age: 50,
+  name: 'John',
+  occupation: undefined
+}
 
-      Your explainer can point readers to the `index.html` generated from `spec.emu`
-      via markdown like
+const myPersonObj = {
+  firstName: person.name,
+  ...(person.occupation ? {work:person.occupation} : {}) 
+};
 
-      ```markdown
-      You can browse the [ecmarkup output](https://ACCOUNT.github.io/PROJECT/)
-      or browse the [source](https://github.com/ACCOUNT/PROJECT/blob/HEAD/spec.emu).
-      ```
+// result
+// { firstName: 'John' }
+```
 
-      where *ACCOUNT* and *PROJECT* are the first two path elements in your project's Github URL.
-      For example, for github.com/**tc39**/**template-for-proposals**, *ACCOUNT* is "tc39"
-      and *PROJECT* is "template-for-proposals".
+Or also:
+```javascript
+const person = {
+  age: 50,
+  name: 'John',
+  occupation: undefined
+}
+
+const myPersonObj = {
+  firstName: person.name,
+};
+
+if (person.occupation) {
+  myPersonObj.work = person.occupation;
+}
+
+// result
+// { firstName: 'John' }
+```
+
+## Problem statement
+
+Both these ways of writing the code are quite verbose. And the first way is somewhat less verbose, but at a cost of clarity. Because it contains so many parentheses.
+
+## Proposed solution
+
+The proposed solution defines a new literal object assignment: "?:" Which would only assign the work property if the value on the right: person.occupation is truety. eg: it is not an empty string, not null, not undefined and not zero.
+
+```javascript
+const person = {
+	age: 50,
+	name: 'John',
+	occupation: undefined
+}
+
+const myPersonObj = {
+	firstName: person.name,
+	work?: person.occupation
+};
+
+// result
+// { firstName: 'John' }
+```
+
+We can also introduce the [nullish coalescing operator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing) as a secondary assignment operator: "??:". This would only assign the property "work" if person.occupation is not `null` and not `undefined`.
+
+```javascript
+const person = {
+	age: 50,
+	name: 'John',
+	occupation: undefined
+}
+
+const myPersonObj = {
+	firstName: person.name,
+	work??: person.occupation
+};
+
+// result
+// { firstName: 'John' }
+```
 
 
-## Maintain your proposal repo
+## Other examples and edgecases
 
-  1. Make your changes to `spec.emu` (ecmarkup uses HTML syntax, but is not HTML, so I strongly suggest not naming it ".html")
-  1. Any commit that makes meaningful changes to the spec, should run `npm run build` and commit the resulting output.
-  1. Whenever you update `ecmarkup`, run `npm run build` and commit any changes that come from that dependency.
+Empty string is also considered falsy, so will not be set when the "?:" operator is used.
 
-  [explainer]: https://github.com/tc39/how-we-work/blob/HEAD/explainer.md
+```javascript
+const person = {
+	age: 50,
+	name: 'John',
+	occupation: ''
+}
+
+const myPersonObj = {
+	firstName: person.name,
+	work?: person.occupation
+};
+
+// result
+// { firstName: 'John' }
+```
+
+Empty string is considered a value for the nullish coalescing operator, so will be set if the "??:" operator is used
+
+```javascript
+const person = {
+	age: 50,
+	name: 'John',
+	occupation: ''
+}
+
+const myPersonObj = {
+	firstName: person.name,
+	work??: person.occupation
+};
+
+// result
+// { firstName: 'John', work: '' }
+```
+
+The numeric value zero is also considered falsy, so will not be set when the "?:" operator is used.
+
+```javascript
+const person = {
+	age: 50,
+	name: 'John',
+	occupation: 0
+}
+
+const myPersonObj = {
+	firstName: person.name,
+	work?: person.occupation
+};
+
+// result
+// { firstName: 'John' }
+```
+
+The numeric value zero is considered a value for the nullish coalescing operator, so will be set if the "??:" operator is used
+
+```javascript
+const person = {
+	age: 50,
+	name: 'John',
+	occupation: 0
+}
+
+const myPersonObj = {
+	firstName: person.name,
+	work??: person.occupation
+};
+
+// result
+// { firstName: 'John', work: 0 }
+```
+
+Works with index brackets to set the property
+
+```javascript
+const person = {
+	age: 50,
+	name: 'John',
+	occupation: null
+}
+
+const myPersonObj = {
+	firstName: person.name,
+	['work']??: person.occupation
+};
+
+// result
+// { firstName: 'John' }
+```
+

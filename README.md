@@ -191,3 +191,40 @@ const myPersonObj = {
 // { firstName: 'John' }
 ```
 
+## Other considerations
+
+I was also thinking about how this would work with shorthand notation for object literals. But i don't see a clean way of getting this to work.
+
+eg:
+```javascript
+const occupation = null;
+
+const myPersonObj = {
+	firstName: person.name,
+	occupation?: occupation
+};
+
+// result
+// { firstName: 'John' }
+```
+
+This could be written in shorthand like this:
+```javascript
+const occupation = null;
+
+const myPersonObj = {
+	firstName: person.name,
+	?occupation
+};
+
+// result
+// { firstName: 'John' }
+```
+
+But i'm not entirely sure about the syntax being clear enough and `occupation?: occupation` is quite short already, so i'm not including it in the formal proposal. But feedback is welcomed.
+
+## Looking for feedback
+
+- Should we add both operators? "?:" and "??:", or should we just add "?:" and have the behavior follow the modern nullish coalescing operator (only on null or undefined).
+- What impact does this have on the interpreter process? (V8). Is this an easy change, or would detecting these operators cause the interpretation of object literals to significantly slow down?
+- Feedback on shorthand notation. See the chapter "Other considerations"

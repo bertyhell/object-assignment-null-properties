@@ -1,13 +1,12 @@
 # Proposal for object property nullish coalescing operator
 
-This proposal shows a new syntax for assigning properties to an object literal but only if the object is not falsy/null or undefined.
+This proposal shows a new syntax for assigning properties to an object literal but only if the value is not undefined/null.
 
 Short example:
 ```javascript
 const myPersonObj = {
 	firstName: person.name,
-	work?: person.occupation,      // Only set work if person.occupation is truthy, by using the "?:" operator
-	street??: person.address[0]    // Only set street is person.address[0] is not null and not undefined, by using the "??:" operator
+	work??: person.occupation,      // Only set work if person.occupation is not null and not undefined, by using the "??:" operator
 };
 ```
 
@@ -62,25 +61,7 @@ Both these ways of writing the code are quite verbose. And the first way is some
 
 ## Proposed solution
 
-The proposed solution defines a new literal object assignment: "?:" Which would only assign the work property if the value on the right: person.occupation is truety. eg: it is not an empty string, not null, not undefined and not zero.
-
-```javascript
-const person = {
-	age: 50,
-	name: 'John',
-	occupation: undefined
-}
-
-const myPersonObj = {
-	firstName: person.name,
-	work?: person.occupation
-};
-
-// result
-// { firstName: 'John' }
-```
-
-We can also introduce the [nullish coalescing operator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing) as a secondary assignment operator: "??:". This would only assign the property "work" if person.occupation is not `null` and not `undefined`.
+The proposed solution defines a new literal object assignment: "??:" Which would only assign the work property if the value on the right: person.occupation is not null/undefined. The behvavior would follow the existing [nullish coalescing operator](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Nullish_coalescing).
 
 ```javascript
 const person = {
@@ -100,78 +81,6 @@ const myPersonObj = {
 
 
 ## Other examples and edgecases
-
-Empty string is also considered falsy, so will not be set when the "?:" operator is used.
-
-```javascript
-const person = {
-	age: 50,
-	name: 'John',
-	occupation: ''
-}
-
-const myPersonObj = {
-	firstName: person.name,
-	work?: person.occupation
-};
-
-// result
-// { firstName: 'John' }
-```
-
-Empty string is considered a value for the nullish coalescing operator, so will be set if the "??:" operator is used
-
-```javascript
-const person = {
-	age: 50,
-	name: 'John',
-	occupation: ''
-}
-
-const myPersonObj = {
-	firstName: person.name,
-	work??: person.occupation
-};
-
-// result
-// { firstName: 'John', work: '' }
-```
-
-The numeric value zero is also considered falsy, so will not be set when the "?:" operator is used.
-
-```javascript
-const person = {
-	age: 50,
-	name: 'John',
-	occupation: 0
-}
-
-const myPersonObj = {
-	firstName: person.name,
-	work?: person.occupation
-};
-
-// result
-// { firstName: 'John' }
-```
-
-The numeric value zero is considered a value for the nullish coalescing operator, so will be set if the "??:" operator is used
-
-```javascript
-const person = {
-	age: 50,
-	name: 'John',
-	occupation: 0
-}
-
-const myPersonObj = {
-	firstName: person.name,
-	work??: person.occupation
-};
-
-// result
-// { firstName: 'John', work: 0 }
-```
 
 Works with index brackets to set the property
 
@@ -193,7 +102,21 @@ const myPersonObj = {
 
 ## Other considerations
 
-I was also thinking about how this would work with shorthand notation for object literals. But i don't see a clean way of getting this to work.
+### I was considering another operator: "?:" which would check for falsey values. eg: empty string, zero, null and undefined. But with the "??:" operator there is already a susinct way of writing that: (credit to claudepache in [comment](https://es.discourse.group/t/object-nullish-coalescing-operator/1564/2))
+
+```javascript
+const occupation = '';
+
+const myPersonObj = {
+	firstName: person.name,
+	occupation??: occupation || null
+};
+
+// result
+// { firstName: 'John' }
+```
+
+### I was also thinking about how this would work with shorthand notation for object literals. But i don't see a clean way of getting this to work.
 
 eg:
 ```javascript
